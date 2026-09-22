@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.subjektivdk.omagtasks",
+  "name": "OmagTasks",
+  "version": "0.1.0",
+  "author": "subjektivdk",
+  "license": "MIT",
+  "description": "Google Tasks i baren — se, tilføj og afkryds opgaver uden at forlade Omarchy.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "OmagTasks",
+    "description": "Google Tasks i baren — se, tilføj og afkryds opgaver",
+    "category": "Productivity",
+    "aliases": ["tasks", "google tasks", "omagtasks", "todo", "opgaver"],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "clientId": "",
+      "oauthPort": 8990,
+      "pollMinutes": 5
+    },
+    "schema": [
+      {
+        "key": "clientId",
+        "type": "string",
+        "label": "Google OAuth client-id",
+        "defaultValue": "",
+        "description": "Opret et OAuth-klient-id af typen \"Desktop app\" i Google Cloud Console (APIs & Services → Credentials) og indsæt det her. Se README.md i plugin-mappen for trin-for-trin guide."
+      },
+      {
+        "key": "clientSecret",
+        "type": "string",
+        "label": "Google OAuth client secret",
+        "defaultValue": "",
+        "description": "Google genererer nu automatisk et client secret selv for \"Desktop app\"-klienter, og kræver det ved token-exchange på trods af at PKCE i teorien gør det unødvendigt. Kopiér det fra samme sted som client-id'et og indsæt her — ellers fejler login med \"invalid_request\"."
+      },
+      {
+        "key": "oauthPort",
+        "type": "integer",
+        "label": "Lokal OAuth-port",
+        "min": 1024,
+        "max": 65535,
+        "step": 1,
+        "defaultValue": 8990,
+        "description": "Port på 127.0.0.1 som midlertidigt lytter efter Googles redirect under login. Skal matche en autoriseret redirect-URI (http://127.0.0.1:<port>/callback) på dit OAuth-klient-id."
+      },
+      {
+        "key": "pollMinutes",
+        "type": "integer",
+        "label": "Opdater hvert (minutter)",
+        "min": 1,
+        "max": 60,
+        "step": 1,
+        "defaultValue": 5,
+        "description": "Hvor ofte pluginet henter opgaver fra Google i baggrunden, mens du er logget ind."
+      }
+    ]
+  }
+}
