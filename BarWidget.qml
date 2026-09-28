@@ -54,15 +54,6 @@ BarWidget {
 
   readonly property int openCount: panelLoader.item ? panelLoader.item.openCount || 0 : 0
   readonly property bool loggedIn: panelLoader.item ? panelLoader.item.loggedIn === true : false
-  // Plain geometric shapes (U+25A0/25A1), not the checkbox-style symbols
-  // (U+2610/2611): Qt renders those through a color-emoji glyph regardless
-  // of text-presentation variation selectors, ignoring the theme color
-  // entirely. Geometric shapes have no color-emoji variant, so they stay a
-  // single flat glyph that follows bar.barForeground like every other bar
-  // icon (light on a dark bar, dark on a light bar).
-  readonly property string badgeText: root.loggedIn
-    ? (root.openCount > 0 ? "■ " + root.openCount : "■")
-    : "□"
 
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
@@ -86,11 +77,56 @@ BarWidget {
     anchors.fill: parent
     bar: root.bar
     foreground: root.bar ? root.bar.barForeground : Color.foreground
-    text: root.badgeText
+    // No built-in label: the checkbox glyph and count digit are drawn
+    // below as plain QML shapes/text instead. Unicode's own checkbox
+    // glyphs (☐/☑) render through a fixed-color emoji font regardless of
+    // theme, so this draws the same shape from primitives — a border
+    // Rectangle plus a "✓" (U+2713, an ordinary punctuation mark with no
+    // emoji-color variant) — to keep it one flat glyph that follows
+    // bar.barForeground like every other bar icon.
+    text: ""
+    hasVisualContent: true
+    fixedWidth: vertical ? barSize : Math.ceil(content.implicitWidth + scaledHorizontalMargin * 2)
     tooltipText: root.loggedIn
       ? (root.openCount > 0 ? root.openCount + " åbne opgaver — klik for at se dem" : "Ingen åbne opgaver")
       : "OmagTasks — klik for at logge ind"
 
     onPressed: root.togglePanel()
+
+    Row {
+      id: content
+      anchors.centerIn: parent
+      spacing: Style.space(4)
+
+      Rectangle {
+        id: checkbox
+        anchors.verticalCenter: parent.verticalCenter
+        width: Style.bar.iconFont
+        height: width
+        radius: Math.max(2, width * 0.2)
+        color: "transparent"
+        border.width: Math.max(1, width * 0.12)
+        border.color: button.foreground
+
+        Text {
+          anchors.centerIn: parent
+          textFormat: Text.PlainText
+          text: "✓"
+          font.bold: true
+          font.pixelSize: checkbox.height * 0.7
+          color: button.foreground
+        }
+      }
+
+      Text {
+        visible: root.loggedIn && root.openCount > 0
+        anchors.verticalCenter: parent.verticalCenter
+        textFormat: Text.PlainText
+        text: String(root.openCount)
+        font.family: root.bar ? root.bar.fontFamily : Style.font.family
+        font.pixelSize: Style.font.body
+        color: button.foreground
+      }
+    }
   }
 }
