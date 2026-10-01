@@ -21,6 +21,7 @@
     "defaultSection": "right",
     "defaults": {
       "clientId": "",
+      "clientSecret": "",
       "oauthPort": 8990,
       "pollMinutes": 5
     },

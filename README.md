@@ -69,7 +69,7 @@ ln -sfn ~/.config/omarchy/plugins/io.github.subjektivdk.omagtasks/omagtasks-skil
 - Refresh-tokenet gemmes i **GNOME Keyring** via `secret-tool`, aldrig i klartekst på disk.
 - OAuth-loginet bruger en midlertidig lokal HTTP-lytter (`scripts/oauth-callback.py`) på `127.0.0.1:<oauthPort>`, som kun lever under selve login-vinduet.
 
-## Begrænsninger (v0.1.0)
+## Begrænsninger (v0.2.0)
 
 - Kun standard-opgavelisten (`@default`) — ikke flere lister.
 - Ingen forfaldsdatoer, noter eller underopgaver — kun titel og status.
