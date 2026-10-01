@@ -50,10 +50,16 @@ Klik på ☐-ikonet i baren → **Log ind med Google**. Din browser åbner, du g
 
 ## Claude Code skill
 
-[`claude-skill/`](claude-skill) er en [Claude Code](https://claude.com/claude-code)-skill, der bruger samme Google-konto som pluginet. Den lader Claude oprette, vise, afkrydse og slette opgaver fra chatten ("opret opgave: ring til tandlægen i morgen", "hvad har jeg af opgaver"). Link den ind i dine skills, så den opdateres sammen med pluginet:
+[`omagtasks-skill/`](omagtasks-skill) er en [Claude Code](https://claude.com/claude-code)-skill, der bruger samme Google-konto som pluginet. Den lader Claude oprette, vise, afkrydse og slette opgaver fra chatten ("opret opgave: ring til tandlægen i morgen", "hvad har jeg af opgaver"). Link den ind i dine skills, så den opdateres sammen med pluginet:
 
 ```bash
-ln -s ~/.config/omarchy/plugins/io.github.subjektivdk.omagtasks/claude-skill ~/.claude/skills/omagtasks
+ln -s ~/.config/omarchy/plugins/io.github.subjektivdk.omagtasks/omagtasks-skill ~/.claude/skills/omagtasks
+```
+
+**Opgradering fra 0.1.0:** mappen hed tidligere `claude-skill/`, så et eksisterende link holder op med at virke efter `omarchy plugin update` (plugin-mapper må ikke indeholde symlinks, så der er intet kompatibilitetslink). Peg det på den nye mappe:
+
+```bash
+ln -sfn ~/.config/omarchy/plugins/io.github.subjektivdk.omagtasks/omagtasks-skill ~/.claude/skills/omagtasks
 ```
 
 ## Data og sikkerhed

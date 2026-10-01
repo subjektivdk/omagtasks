@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.subjektivdk.omagtasks",
   "name": "OmagTasks",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "subjektivdk",
   "license": "MIT",
   "description": "Google Tasks i baren — se, tilføj og afkryds opgaver uden at forlade Omarchy.",
