@@ -48,6 +48,14 @@ Klik på ☐-ikonet i baren → **Log ind med Google**. Din browser åbner, du g
 - Klik på en opgave for at afkrydse/genåbne den.
 - Skriv i feltet og tryk Enter (eller klik +) for at tilføje en ny opgave.
 
+## Claude Code skill
+
+[`claude-skill/`](claude-skill) er en [Claude Code](https://claude.com/claude-code)-skill, der bruger samme Google-konto som pluginet. Den lader Claude oprette, vise, afkrydse og slette opgaver fra chatten ("opret opgave: ring til tandlægen i morgen", "hvad har jeg af opgaver"). Link den ind i dine skills, så den opdateres sammen med pluginet:
+
+```bash
+ln -s ~/.config/omarchy/plugins/io.github.subjektivdk.omagtasks/claude-skill ~/.claude/skills/omagtasks
+```
+
 ## Data og sikkerhed
 
 - Client-id og client secret gemmes i klartekst i `~/.config/omarchy/shell.json` (samme som alle andre plugin-indstillinger). Secretet er reelt ikke fortroligt for en "installed app"-klient som denne — Google kræver det bare teknisk ved token-exchange — men del det ikke unødigt.
