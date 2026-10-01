@@ -60,13 +60,17 @@ Panel {
     return n
   }
   readonly property bool loggedIn: auth.loggedIn
-  // Completed tasks are hidden rather than shown struck-through: the API
-  // fetch already excludes them (showCompleted=false), and this filter
-  // makes a just-checked task disappear immediately rather than waiting
-  // for the next poll to drop it.
+  // root.tasks holds open and completed tasks together. Open ones are
+  // grouped by due date; completed ones go in the "Fuldført" section at the
+  // bottom, so a checked task moves there immediately instead of waiting
+  // for the next poll.
   readonly property var groupedTasks: root.loggedIn
     ? Api.groupTasksByDue(root.tasks.filter(function(t) { return t.status !== "completed" }))
     : []
+  readonly property var completedTasks: root.loggedIn ? Api.completedTasks(root.tasks) : []
+  // Collapsed by default, like dr-lyd's regional groups. Kept in memory
+  // only, so it starts collapsed again after a shell restart.
+  property bool completedExpanded: false
   property bool loadBusy: false
   property string loadError: ""
   property string newTaskText: ""
@@ -95,21 +99,35 @@ Panel {
         root.loadError = err || "Ikke logget ind"
         return
       }
-      var req = new XMLHttpRequest()
-      req.onreadystatechange = function() {
-        if (req.readyState !== XMLHttpRequest.DONE) return
-        root.loadBusy = false
-        if (req.status < 200 || req.status >= 300) {
-          root.loadError = Api.responseError(req.status, Api.parseJson(req.responseText, null),
-            "Kunne ikke hente opgaver")
-          return
+      // Open and completed tasks are fetched in parallel and only applied
+      // once both have answered, so the list never shows one half.
+      var results = {}
+      var pending = 2
+      var failed = ""
+      function fetchList(key, url) {
+        var req = new XMLHttpRequest()
+        req.onreadystatechange = function() {
+          if (req.readyState !== XMLHttpRequest.DONE) return
+          if (req.status < 200 || req.status >= 300) {
+            failed = failed || Api.responseError(req.status, Api.parseJson(req.responseText, null),
+              "Kunne ikke hente opgaver")
+          } else {
+            results[key] = Api.parseTaskList(req.responseText)
+          }
+          if (--pending > 0) return
+          root.loadBusy = false
+          if (failed) { root.loadError = failed; return }
+          root.tasks = results.open.concat(results.completed.filter(function(t) {
+            return t.status === "completed"
+          }))
+          root.loadError = ""
         }
-        root.tasks = Api.parseTaskList(req.responseText)
-        root.loadError = ""
+        req.open("GET", url)
+        req.setRequestHeader("Authorization", "Bearer " + token)
+        req.send()
       }
-      req.open("GET", Api.listTasksUrl())
-      req.setRequestHeader("Authorization", "Bearer " + token)
-      req.send()
+      fetchList("open", Api.listTasksUrl())
+      fetchList("completed", Api.listCompletedTasksUrl(Date.now()))
     })
   }
 
@@ -150,7 +168,9 @@ Panel {
     for (var i = 0; i < root.tasks.length; i++) {
       var item = root.tasks[i]
       next.push(item.id === task.id
-        ? { id: item.id, title: item.title, status: nextStatus, due: item.due, position: item.position }
+        ? { id: item.id, title: item.title, status: nextStatus, due: item.due,
+            completed: nextStatus === "completed" ? new Date().toISOString() : "",
+            position: item.position }
         : item)
     }
     root.tasks = next
@@ -417,60 +437,13 @@ Panel {
 
               Repeater {
                 model: groupColumn.modelData.items
-
-                Rectangle {
-                  id: taskRow
-                  required property var modelData
-                  width: parent.width
-                  height: taskRowContent.implicitHeight + Style.space(10)
-                  radius: Style.cornerRadius
-                  color: taskArea.containsMouse ? Style.hoverFillFor(root.bar.foreground, Color.accent) : "transparent"
-
-                  Row {
-                    id: taskRowContent
-                    anchors.left: parent.left
-                    anchors.leftMargin: Style.space(16)
-                    anchors.right: parent.right
-                    anchors.rightMargin: Style.space(16)
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: Style.space(8)
-
-                    Text {
-                      textFormat: Text.PlainText
-                      text: taskRow.modelData.status === "completed" ? "󰄲" : "󰄱"
-                      color: taskRow.modelData.status === "completed"
-                        ? Color.accent : root.bar.foreground
-                      font.family: root.bar.fontFamily
-                      font.pixelSize: Style.font.body
-                    }
-
-                    Text {
-                      textFormat: Text.PlainText
-                      text: taskRow.modelData.title
-                      wrapMode: Text.WordWrap
-                      width: taskRowContent.width - Style.space(24)
-                      color: taskRow.modelData.status === "completed"
-                        ? Qt.darker(root.bar.foreground, 1.5) : root.bar.foreground
-                      font.family: root.bar.fontFamily
-                      font.pixelSize: Style.font.body
-                      font.strikeout: taskRow.modelData.status === "completed"
-                    }
-                  }
-
-                  MouseArea {
-                    id: taskArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.toggleTaskDone(taskRow.modelData)
-                  }
-                }
+                TaskRow {}
               }
             }
           }
 
           Text {
-            visible: root.loggedIn && root.tasks.length === 0 && !root.loadBusy && root.loadError === ""
+            visible: root.loggedIn && root.openCount === 0 && !root.loadBusy && root.loadError === ""
             x: Style.space(16)
             textFormat: Text.PlainText
             text: "Ingen opgaver 🎉"
@@ -479,8 +452,127 @@ Panel {
             font.pixelSize: Style.font.bodySmall
             font.italic: true
           }
+
+          // ---- Completed, newest completion first; collapsed by default ----
+          Column {
+            visible: root.completedTasks.length > 0
+            width: parent.width
+            spacing: Style.space(2)
+
+            Rectangle {
+              width: parent.width
+              height: Style.spacing.hairline
+              color: root.bar.foreground
+              opacity: 0.12
+            }
+
+            Item {
+              width: parent.width
+              height: Math.max(completedLabel.implicitHeight, completedToggle.implicitHeight) + Style.space(4)
+
+              Text {
+                id: completedLabel
+                x: Style.space(16)
+                anchors.verticalCenter: parent.verticalCenter
+                textFormat: Text.PlainText
+                text: "FULDFØRT" + (root.completedExpanded ? "" : " (" + root.completedTasks.length + ")")
+                color: Qt.darker(root.bar.foreground, 1.5)
+                font.family: root.bar.fontFamily
+                font.pixelSize: Style.font.caption
+                font.letterSpacing: 1
+              }
+
+              MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.completedExpanded = !root.completedExpanded
+              }
+
+              PanelActionButton {
+                id: completedToggle
+                anchors.right: parent.right
+                anchors.rightMargin: Style.space(6)
+                anchors.verticalCenter: parent.verticalCenter
+                iconText: root.completedExpanded ? "󰍴" : "󰐕"
+                tooltipText: root.completedExpanded ? "Fold sammen" : "Fold ud"
+                foreground: Qt.darker(root.bar.foreground, 1.4)
+                hoverColor: root.bar.foreground
+                fontFamily: root.bar.fontFamily
+                onClicked: root.completedExpanded = !root.completedExpanded
+              }
+            }
+
+            Repeater {
+              model: root.completedExpanded ? root.completedTasks : []
+              TaskRow { showCompletedDate: true }
+            }
+          }
         }
       }
+    }
+  }
+
+  // One task: checkbox, title and (in "Fuldført") the completion date.
+  // Clicking toggles it between open and completed.
+  component TaskRow: Rectangle {
+    id: taskRow
+    required property var modelData
+    property bool showCompletedDate: false
+    readonly property bool done: modelData.status === "completed"
+    width: parent ? parent.width : 0
+    height: taskRowContent.implicitHeight + Style.space(10)
+    radius: Style.cornerRadius
+    color: taskArea.containsMouse ? Style.hoverFillFor(root.bar.foreground, Color.accent) : "transparent"
+
+    Row {
+      id: taskRowContent
+      anchors.left: parent.left
+      anchors.leftMargin: Style.space(16)
+      anchors.right: parent.right
+      anchors.rightMargin: Style.space(16)
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: Style.space(8)
+
+      Text {
+        textFormat: Text.PlainText
+        text: taskRow.done ? "󰄲" : "󰄱"
+        color: taskRow.done ? Color.accent : root.bar.foreground
+        font.family: root.bar.fontFamily
+        font.pixelSize: Style.font.body
+      }
+
+      Text {
+        textFormat: Text.PlainText
+        text: taskRow.modelData.title
+        wrapMode: Text.WordWrap
+        width: taskRowContent.width - Style.space(24)
+          - (completedDate.visible ? completedDate.implicitWidth + Style.space(8) : 0)
+        color: taskRow.done ? Qt.darker(root.bar.foreground, 1.5) : root.bar.foreground
+        font.family: root.bar.fontFamily
+        font.pixelSize: Style.font.body
+        font.strikeout: taskRow.done
+      }
+    }
+
+    Text {
+      id: completedDate
+      visible: taskRow.showCompletedDate && text !== ""
+      anchors.right: parent.right
+      anchors.rightMargin: Style.space(16)
+      anchors.verticalCenter: parent.verticalCenter
+      textFormat: Text.PlainText
+      text: Api.formatCompletedLabel(taskRow.modelData.completed, Date.now())
+      color: Qt.darker(root.bar.foreground, 1.5)
+      font.family: root.bar.fontFamily
+      font.pixelSize: Style.font.bodySmall
+    }
+
+    MouseArea {
+      id: taskArea
+      anchors.fill: parent
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
+      onClicked: root.toggleTaskDone(taskRow.modelData)
     }
   }
 }

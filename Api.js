@@ -140,6 +140,21 @@ function listTasksUrl() {
   })
 }
 
+// Completed tasks come from a request of their own, so they never compete
+// with open tasks for maxResults. showHidden is needed as well: tasks
+// completed in Google's own apps are hidden and would otherwise be left out.
+// Only the last COMPLETED_DAYS are fetched.
+var COMPLETED_DAYS = 30
+
+function listCompletedTasksUrl(nowMs) {
+  return appendQuery(TASKS_BASE + "/lists/@default/tasks", {
+    showCompleted: "true",
+    showHidden: "true",
+    completedMin: new Date(nowMs - COMPLETED_DAYS * 86400000).toISOString(),
+    maxResults: "100"
+  })
+}
+
 function insertTaskUrl() {
   return TASKS_BASE + "/lists/@default/tasks"
 }
@@ -160,6 +175,7 @@ function parseTaskList(text) {
       title: String(item.title || "(uden titel)"),
       status: String(item.status || "needsAction"),
       due: String(item.due || ""),
+      completed: String(item.completed || ""),
       position: String(item.position || "")
     })
   }
@@ -210,4 +226,34 @@ function groupTasksByDue(tasks) {
   return order.map(function(key) {
     return { key: key || "none", label: formatDueLabel(key), items: byKey[key] }
   })
+}
+
+// ---- Completed tasks (newest completion first) ----
+
+var MONTHS_DA_SHORT = ["jan", "feb", "mar", "apr", "maj", "jun", "jul",
+  "aug", "sep", "okt", "nov", "dec"]
+
+function completedTasks(tasks) {
+  var out = tasks.filter(function(t) { return t.status === "completed" })
+  // RFC 3339 timestamps in UTC sort correctly as strings; a missing
+  // timestamp sorts last.
+  out.sort(function(a, b) {
+    return a.completed < b.completed ? 1 : (a.completed > b.completed ? -1 : 0)
+  })
+  return out
+}
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+}
+
+// "i dag", "i går", otherwise "28. sep" — in local time, since "completed"
+// is a real timestamp (unlike "due", which is date-only).
+function formatCompletedLabel(completed, nowMs) {
+  var date = new Date(String(completed || ""))
+  if (isNaN(date.getTime())) return ""
+  var days = Math.round((startOfDay(new Date(nowMs)) - startOfDay(date)) / 86400000)
+  if (days === 0) return "i dag"
+  if (days === 1) return "i går"
+  return date.getDate() + ". " + MONTHS_DA_SHORT[date.getMonth()]
 }

@@ -46,6 +46,7 @@ Klik på ☐-ikonet i baren → **Log ind med Google**. Din browser åbner, du g
 - Viser antal åbne opgaver i baren (☑ 3), opdateret hvert `pollMinutes` minut (standard 5).
 - Klik på baren åbner et panel med listen fra din **standard-opgaveliste** (`@default` i Google Tasks).
 - Klik på en opgave for at afkrydse/genåbne den.
+- Fuldførte opgaver fra de sidste 30 dage ligger nederst under **Fuldført**, sammenfoldet som standard. Fold ud med +, så står de med den senest fuldførte øverst og datoen til højre. Klik på en for at genåbne den.
 - Skriv i feltet og tryk Enter (eller klik +) for at tilføje en ny opgave.
 
 ## Claude Code skill
