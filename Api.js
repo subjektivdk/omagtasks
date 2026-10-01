@@ -113,10 +113,10 @@ function parseTokenResponse(status, text, previousRefreshToken) {
 }
 
 function successResponse() {
-  var body = "<!doctype html><meta charset=\"utf-8\"><title>OmagTasks</title>"
+  var body = "<!doctype html><meta charset=\"utf-8\"><title>omagtasks</title>"
     + "<style>:root{color-scheme:light dark}body{font-family:system-ui;background:Canvas;color:CanvasText;display:grid;place-items:center;height:100vh;margin:0}"
     + "main{max-width:32rem;padding:2rem;border:1px solid GrayText;border-radius:.5rem}</style>"
-    + "<main><h1>Login gennemført</h1><p>Vender tilbage til OmagTasks…</p>"
+    + "<main><h1>Login gennemført</h1><p>Vender tilbage til omagtasks…</p>"
     + "<p><small>Du kan lukke denne fane.</small></p></main>"
     + "<script>setTimeout(function(){window.close()},150)</script>"
   return "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nCache-Control: no-store\r\nContent-Length: "

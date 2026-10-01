@@ -89,7 +89,7 @@ BarWidget {
     fixedWidth: vertical ? barSize : Math.ceil(content.implicitWidth + scaledHorizontalMargin * 2)
     tooltipText: root.loggedIn
       ? (root.openCount > 0 ? root.openCount + " åbne opgaver — klik for at se dem" : "Ingen åbne opgaver")
-      : "OmagTasks — klik for at logge ind"
+      : "omagtasks — klik for at logge ind"
 
     onPressed: root.togglePanel()
 

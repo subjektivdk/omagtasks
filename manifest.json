@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "io.github.subjektivdk.omagtasks",
-  "name": "OmagTasks",
+  "name": "omagtasks",
   "version": "0.2.0",
   "author": "subjektivdk",
   "license": "MIT",
@@ -13,7 +13,7 @@
     "barWidget": "BarWidget.qml"
   },
   "barWidget": {
-    "displayName": "OmagTasks",
+    "displayName": "omagtasks",
     "description": "Google Tasks i baren — se, tilføj og afkryds opgaver",
     "category": "Productivity",
     "aliases": ["tasks", "google tasks", "omagtasks", "todo", "opgaver"],

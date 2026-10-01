@@ -233,7 +233,7 @@ Panel {
 
               Text {
                 textFormat: Text.PlainText
-                text: "OmagTasks"
+                text: "omagtasks"
                 color: root.bar.foreground
                 font.family: root.bar.fontFamily
                 font.pixelSize: Style.font.body

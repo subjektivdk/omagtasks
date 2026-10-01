@@ -12,7 +12,7 @@ if [ -z "$refresh_token" ]; then
 fi
 
 printf '%s' "$refresh_token" | secret-tool store \
-  --label='OmagTasks refresh token' \
+  --label='omagtasks refresh token' \
   service omagtasks \
   kind refresh-token \
   client-id "$client_id"

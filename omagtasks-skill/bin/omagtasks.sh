@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Helper for the omagtasks Claude Code skill: talks to Google Tasks using the
-# same client-id/secret/refresh-token the OmagTasks Omarchy plugin already
+# same client-id/secret/refresh-token the omagtasks Omarchy plugin already
 # uses (read live from shell.json + GNOME Keyring — nothing duplicated or
 # hardcoded here), then nudges the running plugin to refresh its bar/panel.
 set -euo pipefail

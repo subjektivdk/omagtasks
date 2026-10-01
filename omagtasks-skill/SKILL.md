@@ -1,11 +1,11 @@
 ---
 name: omagtasks
-description: Create, list, or complete tasks in the user's Google Tasks (via the OmagTasks Omarchy plugin) directly from chat. Use when the user asks to create/add/opret a task or opgave, list open tasks, or mark one done, in Danish or English (e.g. "opret task: hent pakke i dag kl 10", "opret opgave...", "add a task...", "hvad har jeg af opgaver").
+description: Create, list, or complete tasks in the user's Google Tasks (via the omagtasks Omarchy plugin) directly from chat. Use when the user asks to create/add/opret a task or opgave, list open tasks, or mark one done, in Danish or English (e.g. "opret task: hent pakke i dag kl 10", "opret opgave...", "add a task...", "hvad har jeg af opgaver").
 ---
 
-# OmagTasks
+# omagtasks
 
-Lets you create, list, and complete tasks in the user's Google Tasks default list without leaving chat. Backs the same account the OmagTasks Omarchy bar plugin (`~/.config/omarchy/plugins/io.github.subjektivdk.omagtasks/`) uses — credentials are read live from `~/.config/omarchy/shell.json` and the GNOME Keyring refresh token, nothing is duplicated here.
+Lets you create, list, and complete tasks in the user's Google Tasks default list without leaving chat. Backs the same account the omagtasks Omarchy bar plugin (`~/.config/omarchy/plugins/io.github.subjektivdk.omagtasks/`) uses — credentials are read live from `~/.config/omarchy/shell.json` and the GNOME Keyring refresh token, nothing is duplicated here.
 
 ## Commands
 
@@ -43,5 +43,5 @@ If the user names a task to complete/check off, run `omagtasks.sh list` first to
 
 ## Errors
 
-- `no stored refresh token` — the user isn't logged in yet; tell them to open the OmagTasks panel from the bar and click "Log ind med Google".
+- `no stored refresh token` — the user isn't logged in yet; tell them to open the omagtasks panel from the bar and click "Log ind med Google".
 - Any other curl/HTTP failure — show the raw error; don't guess at a fix silently.

@@ -1,4 +1,4 @@
-# OmagTasks
+# omagtasks
 
 Google Tasks i Omarchy-baren. Se dine åbne opgaver, tilføj nye, og afkryds dem — uden at forlade tastaturet.
 
@@ -16,7 +16,7 @@ Pluginet har brug for et Google OAuth-klient-id **og** et client secret. Login f
    - Under **Test users**, tilføj din egen Google-konto (så længe appen er i "Testing"-status, er det kun test-brugere der kan logge ind).
 4. Under **APIs & Services → Credentials → Create Credentials → OAuth client ID**:
    - Application type: **Desktop app** (ikke "Web application" — den type kan ikke bruge en loopback-redirect på en fast port).
-   - Navngiv den fx "OmagTasks".
+   - Navngiv den fx "omagtasks".
 5. Kopiér det genererede **Client ID** (ser ud som `123456789-abc...apps.googleusercontent.com`) **og** **Client Secret** (vises i samme dialog, eller under klientens detaljer bagefter).
 
 > Google's "Desktop app"-klienter tillader automatisk `http://127.0.0.1:<enhver port>/...` som redirect — du behøver ikke registrere porten separat. Hvis Google alligevel klager over redirect-URI'en, kan du under klientens indstillinger eksplicit tilføje `http://127.0.0.1:8990/callback` (eller den port du har sat i `oauthPort`).
