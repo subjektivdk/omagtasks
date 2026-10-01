@@ -241,42 +241,18 @@ Panel {
               }
             }
 
-            Rectangle {
+            PanelActionButton {
               id: refreshButton
-              width: Style.space(26)
-              height: Style.space(26)
               anchors.right: parent.right
-              anchors.rightMargin: Style.space(12)
+              anchors.rightMargin: Style.space(6)
               anchors.verticalCenter: parent.verticalCenter
-              radius: Style.cornerRadius
               visible: root.loggedIn
-              color: refreshArea.containsMouse && !root.loadBusy
-                ? Style.hoverFillFor(root.bar.foreground, Color.accent) : "transparent"
-
-              Text {
-                anchors.centerIn: parent
-                textFormat: Text.PlainText
-                text: root.loadBusy ? "…" : "↻"
-                color: Qt.darker(root.bar.foreground, 1.4)
-                font.family: root.bar.fontFamily
-                font.pixelSize: Style.font.body
-
-                RotationAnimator on rotation {
-                  running: root.loadBusy
-                  from: 0; to: 360
-                  duration: 800
-                  loops: Animation.Infinite
-                }
-              }
-
-              MouseArea {
-                id: refreshArea
-                anchors.fill: parent
-                hoverEnabled: true
-                enabled: !root.loadBusy
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.refresh()
-              }
+              iconText: "󰑐"
+              tooltipText: root.loadBusy ? "Opdaterer…" : "Opdater"
+              enabled: !root.loadBusy
+              foreground: root.bar.foreground
+              fontFamily: root.bar.fontFamily
+              onClicked: root.refresh()
             }
           }
 
@@ -406,32 +382,16 @@ Panel {
               }
             }
 
-            Rectangle {
+            PanelActionButton {
               id: addButton
-              width: Style.space(28)
-              height: Style.space(28)
-              radius: Style.cornerRadius
-              color: addArea.containsMouse ? Style.hoverFillFor(root.bar.foreground, Color.accent) : "transparent"
-              border.width: 1
-              border.color: Qt.darker(root.bar.foreground, 1.3)
-
-              Text {
-                anchors.centerIn: parent
-                textFormat: Text.PlainText
-                text: root.addBusy ? "…" : "+"
-                color: root.bar.foreground
-                font.family: root.bar.fontFamily
-                font.pixelSize: Style.font.body
-              }
-
-              MouseArea {
-                id: addArea
-                anchors.fill: parent
-                hoverEnabled: true
-                enabled: !root.addBusy
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.addTask()
-              }
+              size: inputBox.height
+              bordered: true
+              iconText: "󰐕"
+              tooltipText: root.addBusy ? "Tilføjer…" : "Tilføj opgave"
+              enabled: !root.addBusy
+              foreground: root.bar.foreground
+              fontFamily: root.bar.fontFamily
+              onClicked: root.addTask()
             }
           }
 
@@ -477,7 +437,7 @@ Panel {
 
                     Text {
                       textFormat: Text.PlainText
-                      text: taskRow.modelData.status === "completed" ? "■" : "□"
+                      text: taskRow.modelData.status === "completed" ? "󰄲" : "󰄱"
                       color: taskRow.modelData.status === "completed"
                         ? Color.accent : root.bar.foreground
                       font.family: root.bar.fontFamily
