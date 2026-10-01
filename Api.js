@@ -73,7 +73,7 @@ function parseQuery(raw) {
 
 function parseCallbackRequestLine(line, expectedPath) {
   var match = String(line || "").match(/^GET\s+([^\s]+)\s+HTTP\/\d(?:\.\d)?$/)
-  if (!match) return { ok: false, error: "Ugyldigt svar fra login-vinduet" }
+  if (!match) return { ok: false, error: "Invalid response from the sign-in window" }
   var target = match[1]
   var separator = target.indexOf("?")
   var path = separator < 0 ? target : target.substring(0, separator)
@@ -87,10 +87,10 @@ function parseCallbackRequestLine(line, expectedPath) {
 
 function parsePkceOutput(line) {
   var parts = String(line || "").trim().split("\t")
-  if (parts.length !== 3) return { ok: false, error: "Kunne ikke oprette PKCE-parametre" }
-  if (!/^[A-Za-z0-9._~-]{43,128}$/.test(parts[0])) return { ok: false, error: "Ugyldig PKCE verifier" }
-  if (!/^[A-Za-z0-9_-]{43,128}$/.test(parts[1])) return { ok: false, error: "Ugyldig PKCE challenge" }
-  if (!/^[A-Fa-f0-9]{32,128}$/.test(parts[2])) return { ok: false, error: "Ugyldig OAuth state" }
+  if (parts.length !== 3) return { ok: false, error: "Couldn't create PKCE parameters" }
+  if (!/^[A-Za-z0-9._~-]{43,128}$/.test(parts[0])) return { ok: false, error: "Invalid PKCE verifier" }
+  if (!/^[A-Za-z0-9_-]{43,128}$/.test(parts[1])) return { ok: false, error: "Invalid PKCE challenge" }
+  if (!/^[A-Fa-f0-9]{32,128}$/.test(parts[2])) return { ok: false, error: "Invalid OAuth state" }
   return { ok: true, verifier: parts[0], challenge: parts[1], state: parts[2] }
 }
 
@@ -100,7 +100,7 @@ function parseTokenResponse(status, text, previousRefreshToken) {
     return {
       ok: false,
       invalidGrant: !!payload && payload.error === "invalid_grant",
-      error: responseError(status, payload, "Kunne ikke fuldføre login hos Google. Prøv igen")
+      error: responseError(status, payload, "Couldn't complete sign-in with Google. Try again")
     }
   }
   return {
@@ -112,20 +112,22 @@ function parseTokenResponse(status, text, previousRefreshToken) {
   }
 }
 
+// The page goes through Qt.btoa, which encodes Latin-1, so keep the HTML
+// ASCII-only (entities for anything else) or it renders garbled as UTF-8.
 function successResponse() {
   var body = "<!doctype html><meta charset=\"utf-8\"><title>omagtasks</title>"
     + "<style>:root{color-scheme:light dark}body{font-family:system-ui;background:Canvas;color:CanvasText;display:grid;place-items:center;height:100vh;margin:0}"
     + "main{max-width:32rem;padding:2rem;border:1px solid GrayText;border-radius:.5rem}</style>"
-    + "<main><h1>Login gennemført</h1><p>Vender tilbage til omagtasks…</p>"
-    + "<p><small>Du kan lukke denne fane.</small></p></main>"
+    + "<main><h1>Signed in</h1><p>Returning to omagtasks&hellip;</p>"
+    + "<p><small>You can close this tab.</small></p></main>"
     + "<script>setTimeout(function(){window.close()},150)</script>"
   return "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nCache-Control: no-store\r\nContent-Length: "
     + body.length + "\r\nConnection: close\r\n\r\n" + body
 }
 
 function failureResponse() {
-  var body = "<!doctype html><meta charset=\"utf-8\"><title>Login mislykkedes</title>"
-    + "<p>Login mislykkedes. Vend tilbage til Omarchy for detaljer.</p>"
+  var body = "<!doctype html><meta charset=\"utf-8\"><title>Sign-in failed</title>"
+    + "<p>Sign-in failed. Return to Omarchy for details.</p>"
   return "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html; charset=utf-8\r\nCache-Control: no-store\r\nContent-Length: "
     + body.length + "\r\nConnection: close\r\n\r\n" + body
 }
@@ -172,7 +174,7 @@ function parseTaskList(text) {
     if (!item || !item.id) continue
     out.push({
       id: String(item.id),
-      title: String(item.title || "(uden titel)"),
+      title: String(item.title || "(untitled)"),
       status: String(item.status || "needsAction"),
       due: String(item.due || ""),
       completed: String(item.completed || ""),
@@ -187,9 +189,9 @@ function parseTaskList(text) {
 
 // ---- Due-date grouping (headings, newest date first; undated tasks last) ----
 
-var WEEKDAYS_DA = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"]
-var MONTHS_DA = ["januar", "februar", "marts", "april", "maj", "juni", "juli",
-  "august", "september", "oktober", "november", "december"]
+var WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+var MONTHS = ["January", "February", "March", "April", "May", "June", "July",
+  "August", "September", "October", "November", "December"]
 
 // Google's "due" field is a date-only timestamp (always midnight UTC), so the
 // ISO date portion alone identifies the day — no timezone conversion needed.
@@ -199,13 +201,13 @@ function dueDateKey(due) {
 }
 
 function formatDueLabel(key) {
-  if (!key) return "Ingen dato"
+  if (!key) return "No date"
   var parts = key.split("-")
   var year = parseInt(parts[0], 10)
   var month = parseInt(parts[1], 10)
   var day = parseInt(parts[2], 10)
   var date = new Date(year, month - 1, day)
-  return WEEKDAYS_DA[date.getDay()] + " " + day + ". " + MONTHS_DA[month - 1] + " " + year
+  return WEEKDAYS[date.getDay()] + " " + day + " " + MONTHS[month - 1] + " " + year
 }
 
 function groupTasksByDue(tasks) {
@@ -230,8 +232,8 @@ function groupTasksByDue(tasks) {
 
 // ---- Completed tasks (newest completion first) ----
 
-var MONTHS_DA_SHORT = ["jan", "feb", "mar", "apr", "maj", "jun", "jul",
-  "aug", "sep", "okt", "nov", "dec"]
+var MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+  "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 function completedTasks(tasks) {
   var out = tasks.filter(function(t) { return t.status === "completed" })
@@ -247,13 +249,13 @@ function startOfDay(date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
 }
 
-// "i dag", "i går", otherwise "28. sep" — in local time, since "completed"
+// "today", "yesterday", otherwise "28 Sep" — in local time, since "completed"
 // is a real timestamp (unlike "due", which is date-only).
 function formatCompletedLabel(completed, nowMs) {
   var date = new Date(String(completed || ""))
   if (isNaN(date.getTime())) return ""
   var days = Math.round((startOfDay(new Date(nowMs)) - startOfDay(date)) / 86400000)
-  if (days === 0) return "i dag"
-  if (days === 1) return "i går"
-  return date.getDate() + ". " + MONTHS_DA_SHORT[date.getMonth()]
+  if (days === 0) return "today"
+  if (days === 1) return "yesterday"
+  return date.getDate() + " " + MONTHS_SHORT[date.getMonth()]
 }

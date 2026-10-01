@@ -61,7 +61,7 @@ Panel {
   }
   readonly property bool loggedIn: auth.loggedIn
   // root.tasks holds open and completed tasks together. Open ones are
-  // grouped by due date; completed ones go in the "Fuldført" section at the
+  // grouped by due date; completed ones go in the "Completed" section at the
   // bottom, so a checked task moves there immediately instead of waiting
   // for the next poll.
   readonly property var groupedTasks: root.loggedIn
@@ -88,7 +88,7 @@ Panel {
 
   function refresh() {
     if (!root.clientId) {
-      root.loadError = "Indsæt et Google OAuth-klient-id i pluginets indstillinger"
+      root.loadError = "Add a Google OAuth client ID in the plugin settings"
       return
     }
     if (root.loadBusy) return
@@ -96,7 +96,7 @@ Panel {
     auth.withAccessToken(function(token, err) {
       if (!token) {
         root.loadBusy = false
-        root.loadError = err || "Ikke logget ind"
+        root.loadError = err || "Not signed in"
         return
       }
       // Open and completed tasks are fetched in parallel and only applied
@@ -110,7 +110,7 @@ Panel {
           if (req.readyState !== XMLHttpRequest.DONE) return
           if (req.status < 200 || req.status >= 300) {
             failed = failed || Api.responseError(req.status, Api.parseJson(req.responseText, null),
-              "Kunne ikke hente opgaver")
+              "Couldn't load tasks")
           } else {
             results[key] = Api.parseTaskList(req.responseText)
           }
@@ -138,7 +138,7 @@ Panel {
     auth.withAccessToken(function(token, err) {
       if (!token) {
         root.addBusy = false
-        root.loadError = err || "Ikke logget ind"
+        root.loadError = err || "Not signed in"
         return
       }
       var req = new XMLHttpRequest()
@@ -147,7 +147,7 @@ Panel {
         root.addBusy = false
         if (req.status < 200 || req.status >= 300) {
           root.loadError = Api.responseError(req.status, Api.parseJson(req.responseText, null),
-            "Kunne ikke oprette opgave")
+            "Couldn't create task")
           return
         }
         root.newTaskText = ""
@@ -268,7 +268,7 @@ Panel {
               anchors.verticalCenter: parent.verticalCenter
               visible: root.loggedIn
               iconText: "󰑐"
-              tooltipText: root.loadBusy ? "Opdaterer…" : "Opdater"
+              tooltipText: root.loadBusy ? "Refreshing…" : "Refresh"
               enabled: !root.loadBusy
               foreground: root.bar.foreground
               fontFamily: root.bar.fontFamily
@@ -290,7 +290,7 @@ Panel {
             width: parent.width - Style.space(32)
             wrapMode: Text.WordWrap
             textFormat: Text.PlainText
-            text: "Indsæt et Google OAuth-klient-id i pluginets indstillinger for at komme i gang (se README.md i plugin-mappen)."
+            text: "Add a Google OAuth client ID in the plugin settings to get started (see README.md in the plugin folder)."
             color: Qt.darker(root.bar.foreground, 1.5)
             font.family: root.bar.fontFamily
             font.pixelSize: Style.font.bodySmall
@@ -311,7 +311,7 @@ Panel {
               id: loginLabel
               anchors.centerIn: parent
               textFormat: Text.PlainText
-              text: auth.loginBusy ? "Logger ind…" : "Log ind med Google"
+              text: auth.loginBusy ? "Signing in…" : "Sign in with Google"
               color: root.bar.foreground
               font.family: root.bar.fontFamily
               font.pixelSize: Style.font.body
@@ -332,7 +332,7 @@ Panel {
             visible: root.loggedIn
             x: Style.space(16)
             textFormat: Text.PlainText
-            text: "Log ud"
+            text: "Sign out"
             color: Qt.darker(root.bar.foreground, 1.5)
             font.family: root.bar.fontFamily
             font.pixelSize: Style.font.caption
@@ -395,7 +395,7 @@ Panel {
                 anchors.left: newTaskField.left
                 anchors.verticalCenter: parent.verticalCenter
                 textFormat: Text.PlainText
-                text: "Ny opgave…"
+                text: "New task…"
                 color: Qt.darker(root.bar.foreground, 1.6)
                 font.family: root.bar.fontFamily
                 font.pixelSize: Style.font.body
@@ -407,7 +407,7 @@ Panel {
               size: inputBox.height
               bordered: true
               iconText: "󰐕"
-              tooltipText: root.addBusy ? "Tilføjer…" : "Tilføj opgave"
+              tooltipText: root.addBusy ? "Adding…" : "Add task"
               enabled: !root.addBusy
               foreground: root.bar.foreground
               fontFamily: root.bar.fontFamily
@@ -446,7 +446,7 @@ Panel {
             visible: root.loggedIn && root.openCount === 0 && !root.loadBusy && root.loadError === ""
             x: Style.space(16)
             textFormat: Text.PlainText
-            text: "Ingen opgaver 🎉"
+            text: "No tasks 🎉"
             color: Qt.darker(root.bar.foreground, 1.5)
             font.family: root.bar.fontFamily
             font.pixelSize: Style.font.bodySmall
@@ -475,7 +475,7 @@ Panel {
                 x: Style.space(16)
                 anchors.verticalCenter: parent.verticalCenter
                 textFormat: Text.PlainText
-                text: "FULDFØRT" + (root.completedExpanded ? "" : " (" + root.completedTasks.length + ")")
+                text: "COMPLETED" + (root.completedExpanded ? "" : " (" + root.completedTasks.length + ")")
                 color: Qt.darker(root.bar.foreground, 1.5)
                 font.family: root.bar.fontFamily
                 font.pixelSize: Style.font.caption
@@ -494,7 +494,7 @@ Panel {
                 anchors.rightMargin: Style.space(6)
                 anchors.verticalCenter: parent.verticalCenter
                 iconText: root.completedExpanded ? "󰍴" : "󰐕"
-                tooltipText: root.completedExpanded ? "Fold sammen" : "Fold ud"
+                tooltipText: root.completedExpanded ? "Collapse" : "Expand"
                 foreground: Qt.darker(root.bar.foreground, 1.4)
                 hoverColor: root.bar.foreground
                 fontFamily: root.bar.fontFamily
@@ -512,7 +512,7 @@ Panel {
     }
   }
 
-  // One task: checkbox, title and (in "Fuldført") the completion date.
+  // One task: checkbox, title and (in "Completed") the completion date.
   // Clicking toggles it between open and completed.
   component TaskRow: Rectangle {
     id: taskRow

@@ -86,7 +86,7 @@ Item {
 
   function withAccessToken(callback) {
     if (typeof callback !== "function") return
-    if (!clientId) { callback("", "Indsæt et Google OAuth-klient-id i indstillinger"); return }
+    if (!clientId) { callback("", "Add a Google OAuth client ID in the plugin settings"); return }
     if (tokenIsFresh()) {
       callback(accessToken, "")
       return
@@ -135,7 +135,7 @@ Item {
       // secretLookup.running and just appends), and gating this on
       // purpose === "request" left those callbacks — and loadBusy/addBusy —
       // stuck forever when restore found nothing.
-      finishWaiters("", "Log ind med Google først")
+      finishWaiters("", "Sign in with Google first")
       return
     }
     refreshWithToken(token, purpose)
@@ -221,7 +221,7 @@ Item {
     resetMemorySession()
     sessionChecked = true
     lastError = ""
-    finishWaiters("", "Logget ud")
+    finishWaiters("", "Signed out")
     if (keyringStore.running) logoutPendingClear = true
     else clearStoredToken()
     loggedOut()
@@ -241,7 +241,7 @@ Item {
     if (!loginBusy || pkceVerifier !== "") return
     var result = Api.parsePkceOutput(raw)
     if (!result.ok) {
-      failLogin("Kunne ikke starte et sikkert Google-login. Prøv igen")
+      failLogin("Couldn't start a secure Google sign-in. Try again")
       return
     }
     pkceVerifier = result.verifier
@@ -284,7 +284,7 @@ Item {
       callbackListener.write(Qt.btoa(Api.failureResponse()) + "\n")
       callbackStopTimer.restart()
       failLogin(callback.ok
-        ? "Google-login kunne ikke bekræftes. Prøv igen"
+        ? "Couldn't verify the Google sign-in. Try again"
         : callback.error, true)
       return
     }
@@ -331,7 +331,7 @@ Item {
   }
 
   function failLogin(reason, listenerAlreadyAnswered) {
-    lastError = safeError(reason || "Google-login mislykkedes. Prøv igen")
+    lastError = safeError(reason || "Google sign-in failed. Try again")
     loginBusy = false
     exchangingCode = false
     authTimeout.stop()
@@ -379,7 +379,7 @@ Item {
   Timer {
     id: authTimeout
     interval: 180000
-    onTriggered: root.failLogin("Google-login tog for lang tid. Prøv igen")
+    onTriggered: root.failLogin("Google sign-in took too long. Try again")
   }
 
   Process {
@@ -390,7 +390,7 @@ Item {
     }
     onExited: function(exitCode) {
       if (root.loginBusy && root.pkceVerifier === "" && exitCode !== 0)
-        root.failLogin("Kunne ikke starte et sikkert Google-login. Prøv igen")
+        root.failLogin("Couldn't start a secure Google sign-in. Try again")
     }
   }
 
@@ -406,8 +406,8 @@ Item {
     onExited: function(exitCode) {
       if (root.loginBusy && !root.callbackHandled && !root.exchangingCode)
         root.failLogin(exitCode === 0
-          ? "Login-vinduet lukkede før det var færdigt"
-          : "Kunne ikke fuldføre Google-login. Luk andre login-vinduer og prøv igen")
+          ? "The sign-in window closed before it finished"
+          : "Couldn't complete Google sign-in. Close other sign-in windows and try again")
     }
   }
 
@@ -435,7 +435,7 @@ Item {
     onExited: function(exitCode) {
       root.keyringWriteToken = ""
       if (exitCode !== 0)
-        root.lastError = "Forbundet til Google, men sessionen kunne ikke gemmes sikkert. Du skal muligvis logge ind igen efter genstart"
+        root.lastError = "Connected to Google, but the session couldn't be stored securely. You may need to sign in again after a restart"
       if (root.logoutPendingClear) {
         root.logoutPendingClear = false
         root.pendingKeyringWrite = ""

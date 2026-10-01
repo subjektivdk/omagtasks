@@ -46,7 +46,7 @@ cmd_create() {
   ')
   curl -sf -X POST "https://tasks.googleapis.com/tasks/v1/lists/@default/tasks" \
     -H "Authorization: Bearer $token" -H "Content-Type: application/json" \
-    -d "$body" | jq -r '"\(.title)\t\(.due // "ingen dato")\t\(.id)"'
+    -d "$body" | jq -r '"\(.title)\t\(.due // "no date")\t\(.id)"'
   refresh_widget
 }
 
@@ -55,7 +55,7 @@ cmd_list() {
   token=$(access_token)
   curl -sf "https://tasks.googleapis.com/tasks/v1/lists/@default/tasks?showCompleted=false&showHidden=false&maxResults=100" \
     -H "Authorization: Bearer $token" \
-    | jq -r '.items[]? | "\(.due // "ingen dato")\t\(.title)\t\(.id)"' | sort
+    | jq -r '.items[]? | "\(.due // "no date")\t\(.title)\t\(.id)"' | sort
 }
 
 cmd_complete() {

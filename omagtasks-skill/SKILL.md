@@ -43,5 +43,5 @@ If the user names a task to complete/check off, run `omagtasks.sh list` first to
 
 ## Errors
 
-- `no stored refresh token` — the user isn't logged in yet; tell them to open the omagtasks panel from the bar and click "Log ind med Google".
+- `no stored refresh token` — the user isn't logged in yet; tell them to open the omagtasks panel from the bar and click "Sign in with Google".
 - Any other curl/HTTP failure — show the raw error; don't guess at a fix silently.
